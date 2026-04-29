@@ -1,6 +1,6 @@
  "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 
 type OpportunityStatus = "Lead" | "Applied" | "Interviewing" | "Offer" | "Closed";
 
@@ -23,12 +23,33 @@ const placeholderRoles: Opportunity[] = [
   { title: "CIO", company: "Northstar Group", status: "Interviewing" },
   { title: "VP Engineering", company: "Blue Orbit", status: "Applied" }
 ];
+const storageKey = "ai-role-tracker-opportunities";
 
 export default function HomePage() {
   const [opportunities, setOpportunities] = useState<Opportunity[]>(placeholderRoles);
   const [title, setTitle] = useState("");
   const [company, setCompany] = useState("");
   const [status, setStatus] = useState<OpportunityStatus>("Lead");
+
+  useEffect(() => {
+    const rawValue = window.localStorage.getItem(storageKey);
+    if (!rawValue) {
+      return;
+    }
+
+    try {
+      const parsedValue = JSON.parse(rawValue) as Opportunity[];
+      if (Array.isArray(parsedValue)) {
+        setOpportunities(parsedValue);
+      }
+    } catch {
+      window.localStorage.removeItem(storageKey);
+    }
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem(storageKey, JSON.stringify(opportunities));
+  }, [opportunities]);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

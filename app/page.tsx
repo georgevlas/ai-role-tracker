@@ -9,6 +9,7 @@ type Opportunity = {
   title: string;
   company: string;
   status: OpportunityStatus;
+  followUpDate: string;
 };
 
 const statusOptions: OpportunityStatus[] = [
@@ -20,9 +21,21 @@ const statusOptions: OpportunityStatus[] = [
 ];
 
 const placeholderRoles: Opportunity[] = [
-  { id: "seed-1", title: "CTO", company: "Acme Tech", status: "Lead" },
-  { id: "seed-2", title: "CIO", company: "Northstar Group", status: "Interviewing" },
-  { id: "seed-3", title: "VP Engineering", company: "Blue Orbit", status: "Applied" }
+  { id: "seed-1", title: "CTO", company: "Acme Tech", status: "Lead", followUpDate: "2026-05-10" },
+  {
+    id: "seed-2",
+    title: "CIO",
+    company: "Northstar Group",
+    status: "Interviewing",
+    followUpDate: "2026-05-03"
+  },
+  {
+    id: "seed-3",
+    title: "VP Engineering",
+    company: "Blue Orbit",
+    status: "Applied",
+    followUpDate: ""
+  }
 ];
 const storageKey = "ai-role-tracker-opportunities";
 
@@ -35,12 +48,14 @@ export default function HomePage() {
   const [title, setTitle] = useState("");
   const [company, setCompany] = useState("");
   const [status, setStatus] = useState<OpportunityStatus>("Lead");
+  const [followUpDate, setFollowUpDate] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<"All" | OpportunityStatus>("All");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const [editCompany, setEditCompany] = useState("");
   const [editStatus, setEditStatus] = useState<OpportunityStatus>("Lead");
+  const [editFollowUpDate, setEditFollowUpDate] = useState("");
 
   useEffect(() => {
     const rawValue = window.localStorage.getItem(storageKey);
@@ -57,7 +72,8 @@ export default function HomePage() {
             id: item.id || createId(),
             title: item.title as string,
             company: item.company as string,
-            status: item.status as OpportunityStatus
+            status: item.status as OpportunityStatus,
+            followUpDate: typeof item.followUpDate === "string" ? item.followUpDate : ""
           }));
         if (normalizedItems.length > 0) {
           setOpportunities(normalizedItems);
@@ -86,13 +102,15 @@ export default function HomePage() {
       id: createId(),
       title: nextTitle,
       company: nextCompany,
-      status
+      status,
+      followUpDate
     };
 
     setOpportunities((current) => [newOpportunity, ...current]);
     setTitle("");
     setCompany("");
     setStatus("Lead");
+    setFollowUpDate("");
   }
 
   function handleDelete(id: string) {
@@ -107,6 +125,7 @@ export default function HomePage() {
     setEditTitle(item.title);
     setEditCompany(item.company);
     setEditStatus(item.status);
+    setEditFollowUpDate(item.followUpDate);
   }
 
   function handleSaveEdit(id: string) {
@@ -123,7 +142,8 @@ export default function HomePage() {
               ...item,
               title: nextTitle,
               company: nextCompany,
-              status: editStatus
+              status: editStatus,
+              followUpDate: editFollowUpDate
             }
           : item
       )
@@ -132,14 +152,20 @@ export default function HomePage() {
   }
 
   const normalizedSearchTerm = searchTerm.trim().toLowerCase();
-  const filteredOpportunities = opportunities.filter((role) => {
-    const matchesSearch =
-      normalizedSearchTerm.length === 0 ||
-      role.title.toLowerCase().includes(normalizedSearchTerm) ||
-      role.company.toLowerCase().includes(normalizedSearchTerm);
-    const matchesStatus = statusFilter === "All" || role.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  const filteredOpportunities = opportunities
+    .filter((role) => {
+      const matchesSearch =
+        normalizedSearchTerm.length === 0 ||
+        role.title.toLowerCase().includes(normalizedSearchTerm) ||
+        role.company.toLowerCase().includes(normalizedSearchTerm);
+      const matchesStatus = statusFilter === "All" || role.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    })
+    .sort((a, b) => {
+      const aTime = a.followUpDate ? new Date(a.followUpDate).getTime() : Number.POSITIVE_INFINITY;
+      const bTime = b.followUpDate ? new Date(b.followUpDate).getTime() : Number.POSITIVE_INFINITY;
+      return aTime - bTime;
+    });
 
   return (
     <main className="container">
@@ -171,6 +197,11 @@ export default function HomePage() {
               </option>
             ))}
           </select>
+          <input
+            type="date"
+            value={followUpDate}
+            onChange={(event) => setFollowUpDate(event.target.value)}
+          />
           <button type="submit">Add Opportunity</button>
         </form>
       </section>
@@ -217,6 +248,11 @@ export default function HomePage() {
                       </option>
                     ))}
                   </select>
+                  <input
+                    type="date"
+                    value={editFollowUpDate}
+                    onChange={(event) => setEditFollowUpDate(event.target.value)}
+                  />
                   <div className="row">
                     <button type="button" onClick={() => handleSaveEdit(role.id)}>
                       Save
@@ -228,7 +264,8 @@ export default function HomePage() {
                 </div>
               ) : (
                 <>
-                  <strong>{role.title}</strong> - {role.company} ({role.status})
+                  <strong>{role.title}</strong> - {role.company} ({role.status}) | Follow-up:{" "}
+                  {role.followUpDate || "Not set"}
                   <div className="row">
                     <button type="button" onClick={() => startEdit(role)}>
                       Edit

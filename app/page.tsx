@@ -1,7 +1,7 @@
 const placeholderRoles = [
-  "CTO - Acme Tech (Lead)",
-  "CIO - Northstar Group (Interviewing)",
-  "VP Engineering - Blue Orbit (Applied)"
+  { title: "CTO", company: "Acme Tech", status: "Lead" },
+  { title: "CIO", company: "Northstar Group", status: "Interviewing" },
+  { title: "VP Engineering", company: "Blue Orbit", status: "Applied" }
 ];
 
 export default function HomePage() {
@@ -17,7 +17,9 @@ export default function HomePage() {
         <h2>Role Opportunities</h2>
         <ul className="list">
           {placeholderRoles.map((role) => (
-            <li key={role}>{role}</li>
+            <li key={`${role.title}-${role.company}`}>
+              <strong>{role.title}</strong> - {role.company} ({role.status})
+            </li>
           ))}
         </ul>
       </section>

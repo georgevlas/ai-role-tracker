@@ -11,6 +11,10 @@ type Opportunity = {
   company: string;
   status: OpportunityStatus;
   priority: OpportunityPriority;
+  recruiterName: string;
+  recruiterEmail: string;
+  recruiterPhone: string;
+  sourceChannel: string;
   followUpDate: string;
   notes: string;
 };
@@ -31,6 +35,10 @@ const placeholderRoles: Opportunity[] = [
     company: "Acme Tech",
     status: "Lead",
     priority: "High",
+    recruiterName: "Sarah Lee",
+    recruiterEmail: "sarah@example.com",
+    recruiterPhone: "",
+    sourceChannel: "LinkedIn",
     followUpDate: "2026-05-10",
     notes: "Initial recruiter intro complete."
   },
@@ -40,6 +48,10 @@ const placeholderRoles: Opportunity[] = [
     company: "Northstar Group",
     status: "Interviewing",
     priority: "Medium",
+    recruiterName: "",
+    recruiterEmail: "",
+    recruiterPhone: "",
+    sourceChannel: "recruiter",
     followUpDate: "2026-05-03",
     notes: ""
   },
@@ -49,6 +61,10 @@ const placeholderRoles: Opportunity[] = [
     company: "Blue Orbit",
     status: "Applied",
     priority: "Low",
+    recruiterName: "",
+    recruiterEmail: "",
+    recruiterPhone: "",
+    sourceChannel: "direct application",
     followUpDate: "",
     notes: "Follow up next week."
   }
@@ -65,6 +81,10 @@ export default function HomePage() {
   const [company, setCompany] = useState("");
   const [status, setStatus] = useState<OpportunityStatus>("Lead");
   const [priority, setPriority] = useState<OpportunityPriority>("Medium");
+  const [recruiterName, setRecruiterName] = useState("");
+  const [recruiterEmail, setRecruiterEmail] = useState("");
+  const [recruiterPhone, setRecruiterPhone] = useState("");
+  const [sourceChannel, setSourceChannel] = useState("");
   const [followUpDate, setFollowUpDate] = useState("");
   const [notes, setNotes] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
@@ -75,6 +95,10 @@ export default function HomePage() {
   const [editCompany, setEditCompany] = useState("");
   const [editStatus, setEditStatus] = useState<OpportunityStatus>("Lead");
   const [editPriority, setEditPriority] = useState<OpportunityPriority>("Medium");
+  const [editRecruiterName, setEditRecruiterName] = useState("");
+  const [editRecruiterEmail, setEditRecruiterEmail] = useState("");
+  const [editRecruiterPhone, setEditRecruiterPhone] = useState("");
+  const [editSourceChannel, setEditSourceChannel] = useState("");
   const [editFollowUpDate, setEditFollowUpDate] = useState("");
   const [editNotes, setEditNotes] = useState("");
   const [formError, setFormError] = useState("");
@@ -100,6 +124,10 @@ export default function HomePage() {
               company: item.company as string,
               status: item.status as OpportunityStatus,
               priority: normalizedPriority,
+              recruiterName: typeof item.recruiterName === "string" ? item.recruiterName : "",
+              recruiterEmail: typeof item.recruiterEmail === "string" ? item.recruiterEmail : "",
+              recruiterPhone: typeof item.recruiterPhone === "string" ? item.recruiterPhone : "",
+              sourceChannel: typeof item.sourceChannel === "string" ? item.sourceChannel : "",
               followUpDate: typeof item.followUpDate === "string" ? item.followUpDate : "",
               notes: typeof item.notes === "string" ? item.notes : ""
             };
@@ -135,6 +163,10 @@ export default function HomePage() {
       company: nextCompany,
       status,
       priority,
+      recruiterName: recruiterName.trim(),
+      recruiterEmail: recruiterEmail.trim(),
+      recruiterPhone: recruiterPhone.trim(),
+      sourceChannel: sourceChannel.trim(),
       followUpDate,
       notes: notes.trim()
     };
@@ -144,6 +176,10 @@ export default function HomePage() {
     setCompany("");
     setStatus("Lead");
     setPriority("Medium");
+    setRecruiterName("");
+    setRecruiterEmail("");
+    setRecruiterPhone("");
+    setSourceChannel("");
     setFollowUpDate("");
     setNotes("");
   }
@@ -162,6 +198,10 @@ export default function HomePage() {
     setEditCompany(item.company);
     setEditStatus(item.status);
     setEditPriority(item.priority);
+    setEditRecruiterName(item.recruiterName);
+    setEditRecruiterEmail(item.recruiterEmail);
+    setEditRecruiterPhone(item.recruiterPhone);
+    setEditSourceChannel(item.sourceChannel);
     setEditFollowUpDate(item.followUpDate);
     setEditNotes(item.notes);
   }
@@ -184,6 +224,10 @@ export default function HomePage() {
               company: nextCompany,
               status: editStatus,
               priority: editPriority,
+              recruiterName: editRecruiterName.trim(),
+              recruiterEmail: editRecruiterEmail.trim(),
+              recruiterPhone: editRecruiterPhone.trim(),
+              sourceChannel: editSourceChannel.trim(),
               followUpDate: editFollowUpDate,
               notes: editNotes.trim()
             }
@@ -266,6 +310,27 @@ export default function HomePage() {
             type="date"
             value={followUpDate}
             onChange={(event) => setFollowUpDate(event.target.value)}
+          />
+          <input
+            placeholder="Recruiter name (optional)"
+            value={recruiterName}
+            onChange={(event) => setRecruiterName(event.target.value)}
+          />
+          <input
+            type="email"
+            placeholder="Recruiter email (optional)"
+            value={recruiterEmail}
+            onChange={(event) => setRecruiterEmail(event.target.value)}
+          />
+          <input
+            placeholder="Recruiter phone (optional)"
+            value={recruiterPhone}
+            onChange={(event) => setRecruiterPhone(event.target.value)}
+          />
+          <input
+            placeholder="Source/channel (optional)"
+            value={sourceChannel}
+            onChange={(event) => setSourceChannel(event.target.value)}
           />
           <textarea
             placeholder="Notes (optional)"
@@ -362,6 +427,27 @@ export default function HomePage() {
                     value={editFollowUpDate}
                     onChange={(event) => setEditFollowUpDate(event.target.value)}
                   />
+                  <input
+                    placeholder="Recruiter name (optional)"
+                    value={editRecruiterName}
+                    onChange={(event) => setEditRecruiterName(event.target.value)}
+                  />
+                  <input
+                    type="email"
+                    placeholder="Recruiter email (optional)"
+                    value={editRecruiterEmail}
+                    onChange={(event) => setEditRecruiterEmail(event.target.value)}
+                  />
+                  <input
+                    placeholder="Recruiter phone (optional)"
+                    value={editRecruiterPhone}
+                    onChange={(event) => setEditRecruiterPhone(event.target.value)}
+                  />
+                  <input
+                    placeholder="Source/channel (optional)"
+                    value={editSourceChannel}
+                    onChange={(event) => setEditSourceChannel(event.target.value)}
+                  />
                   <textarea value={editNotes} onChange={(event) => setEditNotes(event.target.value)} />
                   <div className="row">
                     <button type="button" onClick={() => handleSaveEdit(role.id)}>
@@ -377,6 +463,14 @@ export default function HomePage() {
                 <>
                   <strong>{role.title}</strong> - {role.company} ({role.status}) | Priority:{" "}
                   {role.priority} | Follow-up: {role.followUpDate || "Not set"}
+                  {role.recruiterName || role.recruiterEmail || role.recruiterPhone || role.sourceChannel ? (
+                    <p>
+                      Contact: {role.recruiterName || "N/A"}
+                      {role.recruiterEmail ? ` | ${role.recruiterEmail}` : ""}
+                      {role.recruiterPhone ? ` | ${role.recruiterPhone}` : ""}
+                      {role.sourceChannel ? ` | Source: ${role.sourceChannel}` : ""}
+                    </p>
+                  ) : null}
                   {role.notes ? <p>{role.notes}</p> : null}
                   <div className="row">
                     <button type="button" onClick={() => startEdit(role)}>

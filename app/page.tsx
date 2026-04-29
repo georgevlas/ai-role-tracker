@@ -30,6 +30,8 @@ export default function HomePage() {
   const [title, setTitle] = useState("");
   const [company, setCompany] = useState("");
   const [status, setStatus] = useState<OpportunityStatus>("Lead");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"All" | OpportunityStatus>("All");
 
   useEffect(() => {
     const rawValue = window.localStorage.getItem(storageKey);
@@ -73,6 +75,16 @@ export default function HomePage() {
     setStatus("Lead");
   }
 
+  const normalizedSearchTerm = searchTerm.trim().toLowerCase();
+  const filteredOpportunities = opportunities.filter((role) => {
+    const matchesSearch =
+      normalizedSearchTerm.length === 0 ||
+      role.title.toLowerCase().includes(normalizedSearchTerm) ||
+      role.company.toLowerCase().includes(normalizedSearchTerm);
+    const matchesStatus = statusFilter === "All" || role.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
   return (
     <main className="container">
       <header className="panel">
@@ -109,8 +121,28 @@ export default function HomePage() {
 
       <section className="panel">
         <h2>Role Opportunities</h2>
+        <div className="filters">
+          <input
+            placeholder="Search by title or company"
+            value={searchTerm}
+            onChange={(event) => setSearchTerm(event.target.value)}
+          />
+          <select
+            value={statusFilter}
+            onChange={(event) =>
+              setStatusFilter(event.target.value as "All" | OpportunityStatus)
+            }
+          >
+            <option value="All">All</option>
+            {statusOptions.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+        </div>
         <ul className="list">
-          {opportunities.map((role) => (
+          {filteredOpportunities.map((role) => (
             <li key={`${role.title}-${role.company}-${role.status}`}>
               <strong>{role.title}</strong> - {role.company} ({role.status})
             </li>

@@ -68,6 +68,8 @@ export default function HomePage() {
   const [editStatus, setEditStatus] = useState<OpportunityStatus>("Lead");
   const [editFollowUpDate, setEditFollowUpDate] = useState("");
   const [editNotes, setEditNotes] = useState("");
+  const [formError, setFormError] = useState("");
+  const [editError, setEditError] = useState("");
 
   useEffect(() => {
     const rawValue = window.localStorage.getItem(storageKey);
@@ -107,9 +109,11 @@ export default function HomePage() {
     const nextTitle = title.trim();
     const nextCompany = company.trim();
 
-    if (!nextTitle || !nextCompany) {
+    if (!nextTitle || !nextCompany || !status) {
+      setFormError("Title, company, and status are required.");
       return;
     }
+    setFormError("");
 
     const newOpportunity: Opportunity = {
       id: createId(),
@@ -137,6 +141,7 @@ export default function HomePage() {
 
   function startEdit(item: Opportunity) {
     setEditingId(item.id);
+    setEditError("");
     setEditTitle(item.title);
     setEditCompany(item.company);
     setEditStatus(item.status);
@@ -147,9 +152,11 @@ export default function HomePage() {
   function handleSaveEdit(id: string) {
     const nextTitle = editTitle.trim();
     const nextCompany = editCompany.trim();
-    if (!nextTitle || !nextCompany) {
+    if (!nextTitle || !nextCompany || !editStatus) {
+      setEditError("Title, company, and status are required.");
       return;
     }
+    setEditError("");
 
     setOpportunities((current) =>
       current.map((item) =>
@@ -197,16 +204,25 @@ export default function HomePage() {
           <input
             placeholder="Title"
             value={title}
-            onChange={(event) => setTitle(event.target.value)}
+            onChange={(event) => {
+              setTitle(event.target.value);
+              setFormError("");
+            }}
           />
           <input
             placeholder="Company"
             value={company}
-            onChange={(event) => setCompany(event.target.value)}
+            onChange={(event) => {
+              setCompany(event.target.value);
+              setFormError("");
+            }}
           />
           <select
             value={status}
-            onChange={(event) => setStatus(event.target.value as OpportunityStatus)}
+            onChange={(event) => {
+              setStatus(event.target.value as OpportunityStatus);
+              setFormError("");
+            }}
           >
             {statusOptions.map((option) => (
               <option key={option} value={option}>
@@ -225,6 +241,7 @@ export default function HomePage() {
             onChange={(event) => setNotes(event.target.value)}
           />
           <button type="submit">Add Opportunity</button>
+          {formError ? <p>{formError}</p> : null}
         </form>
       </section>
 
@@ -255,14 +272,26 @@ export default function HomePage() {
             <li key={role.id}>
               {editingId === role.id ? (
                 <div className="grid">
-                  <input value={editTitle} onChange={(event) => setEditTitle(event.target.value)} />
+                  <input
+                    value={editTitle}
+                    onChange={(event) => {
+                      setEditTitle(event.target.value);
+                      setEditError("");
+                    }}
+                  />
                   <input
                     value={editCompany}
-                    onChange={(event) => setEditCompany(event.target.value)}
+                    onChange={(event) => {
+                      setEditCompany(event.target.value);
+                      setEditError("");
+                    }}
                   />
                   <select
                     value={editStatus}
-                    onChange={(event) => setEditStatus(event.target.value as OpportunityStatus)}
+                    onChange={(event) => {
+                      setEditStatus(event.target.value as OpportunityStatus);
+                      setEditError("");
+                    }}
                   >
                     {statusOptions.map((option) => (
                       <option key={option} value={option}>
@@ -284,6 +313,7 @@ export default function HomePage() {
                       Cancel
                     </button>
                   </div>
+                  {editError ? <p>{editError}</p> : null}
                 </div>
               ) : (
                 <>

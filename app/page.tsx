@@ -10,6 +10,7 @@ type Opportunity = {
   company: string;
   status: OpportunityStatus;
   followUpDate: string;
+  notes: string;
 };
 
 const statusOptions: OpportunityStatus[] = [
@@ -21,20 +22,29 @@ const statusOptions: OpportunityStatus[] = [
 ];
 
 const placeholderRoles: Opportunity[] = [
-  { id: "seed-1", title: "CTO", company: "Acme Tech", status: "Lead", followUpDate: "2026-05-10" },
+  {
+    id: "seed-1",
+    title: "CTO",
+    company: "Acme Tech",
+    status: "Lead",
+    followUpDate: "2026-05-10",
+    notes: "Initial recruiter intro complete."
+  },
   {
     id: "seed-2",
     title: "CIO",
     company: "Northstar Group",
     status: "Interviewing",
-    followUpDate: "2026-05-03"
+    followUpDate: "2026-05-03",
+    notes: ""
   },
   {
     id: "seed-3",
     title: "VP Engineering",
     company: "Blue Orbit",
     status: "Applied",
-    followUpDate: ""
+    followUpDate: "",
+    notes: "Follow up next week."
   }
 ];
 const storageKey = "ai-role-tracker-opportunities";
@@ -49,6 +59,7 @@ export default function HomePage() {
   const [company, setCompany] = useState("");
   const [status, setStatus] = useState<OpportunityStatus>("Lead");
   const [followUpDate, setFollowUpDate] = useState("");
+  const [notes, setNotes] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<"All" | OpportunityStatus>("All");
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -56,6 +67,7 @@ export default function HomePage() {
   const [editCompany, setEditCompany] = useState("");
   const [editStatus, setEditStatus] = useState<OpportunityStatus>("Lead");
   const [editFollowUpDate, setEditFollowUpDate] = useState("");
+  const [editNotes, setEditNotes] = useState("");
 
   useEffect(() => {
     const rawValue = window.localStorage.getItem(storageKey);
@@ -73,7 +85,8 @@ export default function HomePage() {
             title: item.title as string,
             company: item.company as string,
             status: item.status as OpportunityStatus,
-            followUpDate: typeof item.followUpDate === "string" ? item.followUpDate : ""
+            followUpDate: typeof item.followUpDate === "string" ? item.followUpDate : "",
+            notes: typeof item.notes === "string" ? item.notes : ""
           }));
         if (normalizedItems.length > 0) {
           setOpportunities(normalizedItems);
@@ -103,7 +116,8 @@ export default function HomePage() {
       title: nextTitle,
       company: nextCompany,
       status,
-      followUpDate
+      followUpDate,
+      notes: notes.trim()
     };
 
     setOpportunities((current) => [newOpportunity, ...current]);
@@ -111,6 +125,7 @@ export default function HomePage() {
     setCompany("");
     setStatus("Lead");
     setFollowUpDate("");
+    setNotes("");
   }
 
   function handleDelete(id: string) {
@@ -126,6 +141,7 @@ export default function HomePage() {
     setEditCompany(item.company);
     setEditStatus(item.status);
     setEditFollowUpDate(item.followUpDate);
+    setEditNotes(item.notes);
   }
 
   function handleSaveEdit(id: string) {
@@ -143,7 +159,8 @@ export default function HomePage() {
               title: nextTitle,
               company: nextCompany,
               status: editStatus,
-              followUpDate: editFollowUpDate
+              followUpDate: editFollowUpDate,
+              notes: editNotes.trim()
             }
           : item
       )
@@ -202,6 +219,11 @@ export default function HomePage() {
             value={followUpDate}
             onChange={(event) => setFollowUpDate(event.target.value)}
           />
+          <textarea
+            placeholder="Notes (optional)"
+            value={notes}
+            onChange={(event) => setNotes(event.target.value)}
+          />
           <button type="submit">Add Opportunity</button>
         </form>
       </section>
@@ -253,6 +275,7 @@ export default function HomePage() {
                     value={editFollowUpDate}
                     onChange={(event) => setEditFollowUpDate(event.target.value)}
                   />
+                  <textarea value={editNotes} onChange={(event) => setEditNotes(event.target.value)} />
                   <div className="row">
                     <button type="button" onClick={() => handleSaveEdit(role.id)}>
                       Save
@@ -266,6 +289,7 @@ export default function HomePage() {
                 <>
                   <strong>{role.title}</strong> - {role.company} ({role.status}) | Follow-up:{" "}
                   {role.followUpDate || "Not set"}
+                  {role.notes ? <p>{role.notes}</p> : null}
                   <div className="row">
                     <button type="button" onClick={() => startEdit(role)}>
                       Edit

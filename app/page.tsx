@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
 
 type OpportunityStatus = "Lead" | "Applied" | "Interviewing" | "Offer" | "Closed";
 type OpportunityPriority = "High" | "Medium" | "Low";
@@ -92,6 +92,44 @@ function escapeCsvValue(value: string) {
   return `"${escaped}"`;
 }
 
+function isOpportunityStatus(value: unknown): value is OpportunityStatus {
+  return value === "Lead" || value === "Applied" || value === "Interviewing" || value === "Offer" || value === "Closed";
+}
+
+function isOpportunityPriority(value: unknown): value is OpportunityPriority {
+  return value === "High" || value === "Medium" || value === "Low";
+}
+
+function normalizeImportedOpportunity(item: unknown): Opportunity | null {
+  if (!item || typeof item !== "object") {
+    return null;
+  }
+
+  const candidate = item as Partial<Opportunity>;
+  if (
+    typeof candidate.title !== "string" ||
+    typeof candidate.company !== "string" ||
+    !isOpportunityStatus(candidate.status) ||
+    !isOpportunityPriority(candidate.priority)
+  ) {
+    return null;
+  }
+
+  return {
+    id: typeof candidate.id === "string" && candidate.id.trim() ? candidate.id : createId(),
+    title: candidate.title.trim(),
+    company: candidate.company.trim(),
+    status: candidate.status,
+    priority: candidate.priority,
+    recruiterName: typeof candidate.recruiterName === "string" ? candidate.recruiterName : "",
+    recruiterEmail: typeof candidate.recruiterEmail === "string" ? candidate.recruiterEmail : "",
+    recruiterPhone: typeof candidate.recruiterPhone === "string" ? candidate.recruiterPhone : "",
+    sourceChannel: typeof candidate.sourceChannel === "string" ? candidate.sourceChannel : "",
+    followUpDate: typeof candidate.followUpDate === "string" ? candidate.followUpDate : "",
+    notes: typeof candidate.notes === "string" ? candidate.notes : ""
+  };
+}
+
 export default function HomePage() {
   const [opportunities, setOpportunities] = useState<Opportunity[]>(placeholderRoles);
   const [title, setTitle] = useState("");
@@ -120,6 +158,8 @@ export default function HomePage() {
   const [editNotes, setEditNotes] = useState("");
   const [formError, setFormError] = useState("");
   const [editError, setEditError] = useState("");
+  const [importError, setImportError] = useState("");
+  const importFileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     const rawValue = window.localStorage.getItem(storageKey);
@@ -311,6 +351,41 @@ export default function HomePage() {
     downloadFile("ai-role-tracker-export.json", jsonContent, "application/json;charset=utf-8;");
   }
 
+  function handleImportClick() {
+    setImportError("");
+    importFileInputRef.current?.click();
+  }
+
+  async function handleImportJson(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    try {
+      const fileContents = await file.text();
+      const parsedValue = JSON.parse(fileContents) as unknown;
+      if (!Array.isArray(parsedValue)) {
+        setImportError("Invalid JSON format. Expected an array of opportunities.");
+        return;
+      }
+
+      const normalizedItems = parsedValue.map((item) => normalizeImportedOpportunity(item));
+      if (normalizedItems.some((item) => item === null)) {
+        setImportError("Invalid opportunity data. Please import a valid export file.");
+        return;
+      }
+
+      setOpportunities(normalizedItems as Opportunity[]);
+      setEditingId(null);
+      setImportError("");
+    } catch {
+      setImportError("Unable to import file. Please upload a valid JSON file.");
+    } finally {
+      event.target.value = "";
+    }
+  }
+
   return (
     <main className="container">
       <header className="panel">
@@ -408,7 +483,18 @@ export default function HomePage() {
           <button type="button" onClick={handleExportJson}>
             Export JSON
           </button>
+          <button type="button" onClick={handleImportClick}>
+            Import JSON
+          </button>
+          <input
+            ref={importFileInputRef}
+            type="file"
+            accept="application/json,.json"
+            onChange={handleImportJson}
+            style={{ display: "none" }}
+          />
         </div>
+        {importError ? <p>{importError}</p> : null}
         <div className="filters">
           <input
             placeholder="Search by title or company"

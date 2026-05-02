@@ -75,6 +75,23 @@ function createId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
+function downloadFile(filename: string, contents: string, mimeType: string) {
+  const blob = new Blob([contents], { type: mimeType });
+  const url = window.URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  document.body.removeChild(anchor);
+  window.URL.revokeObjectURL(url);
+}
+
+function escapeCsvValue(value: string) {
+  const escaped = value.replace(/"/g, '""');
+  return `"${escaped}"`;
+}
+
 export default function HomePage() {
   const [opportunities, setOpportunities] = useState<Opportunity[]>(placeholderRoles);
   const [title, setTitle] = useState("");
@@ -254,6 +271,46 @@ export default function HomePage() {
       return aTime - bTime;
     });
 
+  function handleExportCsv() {
+    const csvHeaders = [
+      "title",
+      "company",
+      "status",
+      "priority",
+      "followUpDate",
+      "recruiterName",
+      "recruiterEmail",
+      "recruiterPhone",
+      "source",
+      "notes"
+    ];
+
+    const csvRows = opportunities.map((item) =>
+      [
+        item.title,
+        item.company,
+        item.status,
+        item.priority,
+        item.followUpDate,
+        item.recruiterName,
+        item.recruiterEmail,
+        item.recruiterPhone,
+        item.sourceChannel,
+        item.notes
+      ]
+        .map((value) => escapeCsvValue(value))
+        .join(",")
+    );
+
+    const csvContent = [csvHeaders.join(","), ...csvRows].join("\n");
+    downloadFile("ai-role-tracker-export.csv", csvContent, "text/csv;charset=utf-8;");
+  }
+
+  function handleExportJson() {
+    const jsonContent = JSON.stringify(opportunities, null, 2);
+    downloadFile("ai-role-tracker-export.json", jsonContent, "application/json;charset=utf-8;");
+  }
+
   return (
     <main className="container">
       <header className="panel">
@@ -344,6 +401,14 @@ export default function HomePage() {
 
       <section className="panel">
         <h2>Role Opportunities</h2>
+        <div className="row">
+          <button type="button" onClick={handleExportCsv}>
+            Export CSV
+          </button>
+          <button type="button" onClick={handleExportJson}>
+            Export JSON
+          </button>
+        </div>
         <div className="filters">
           <input
             placeholder="Search by title or company"
